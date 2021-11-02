@@ -4,8 +4,8 @@ import java.util.Random;
 
 public class Tank {
 
-    private int x, y;
-    private Dir dir = Dir.DOWN;
+    int x, y;
+    Dir dir = Dir.DOWN;
     private static final int SPEED = 5;
 
     public static int WIDTH = ResourceMgr.goodTankL.getWidth();
@@ -15,9 +15,12 @@ public class Tank {
 
 
     public boolean moving = true;  // 初始时，tank静止
-    private TankFrame tf = null;
+    TankFrame tf = null;
     private boolean live = true;
-    private Group group = Group.BAD;
+    Group group = Group.BAD;
+
+    // 定义开火的策略
+    FireStrategy fs;  // 默认开火策略（已修改为在构造方法中根据不同类型的坦克指定不同类型的策略）
 
     private Random random = new Random();
 
@@ -32,6 +35,34 @@ public class Tank {
         rectangle.y = this.y;
         rectangle.width = WIDTH;
         rectangle.height = HEIGHT;
+
+        if (group == Group.GOOD){  // 如果是好坦克，则定义朝四面开火的策略（通过配置文件指定）
+            String goodFSName = (String) PropertyMgr.get("goodFS");
+            try {
+                fs = (FireStrategy) Class.forName(goodFSName).newInstance();  // 通过Class实例化对象。
+
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+
+        }else {  // 否则如果是坏坦克，则采用默认开火策略
+            String badFSName = (String) PropertyMgr.get("badFS");
+            try {
+                fs = (FireStrategy) Class.forName(badFSName).newInstance();  // 通过Class实例化对象。
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+
     }
 
     public void paint(Graphics g){
@@ -131,10 +162,7 @@ public class Tank {
     }
 
     public void fire(){
-        int bX = this.x + Tank.WIDTH / 2 - Bullet.WIDTH / 2;
-        int bY = this.y + Tank.HEIGHT / 2 - Bullet.HEIGHT / 2;
-        // tf.bullets.add(new Bullet(this.x, this.y, this.dir,this.tf));  // 将该坦克创建的子弹交给其所属的窗口
-        tf.bullets.add(new Bullet(bX, bY, this.dir, this.group, this.tf));
+        fs.fire(this);
     }
 
     public int getX() {

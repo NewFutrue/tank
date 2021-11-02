@@ -27,6 +27,8 @@ public class Bullet {
         rectangle.y = this.y;
         rectangle.width = WIDTH;
         rectangle.height = HEIGHT;
+
+        tf.bullets.add(this);  // 每次创建一个子弹，就将该子弹添加到tf中
     }
 
     public void paint(Graphics g){
